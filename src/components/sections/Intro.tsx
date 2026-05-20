@@ -1,8 +1,9 @@
 import { client } from "@/data/client";
 
 export function Intro() {
-  const { hero, ueberUns } = client;
-  const text = (ueberUns as { text1?: string }).text1 || hero.untertext;
+  const { hero } = client;
+  const ueberUns = (client as unknown as { ueberUns?: { text1?: string } }).ueberUns;
+  const text = ueberUns?.text1 || hero.untertext;
 
   return (
     <section

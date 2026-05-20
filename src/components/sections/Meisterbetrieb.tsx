@@ -9,8 +9,10 @@ const TRUST_BADGES = [
 ];
 
 export function Meisterbetrieb() {
-  const ueberUns = (client as { ueberUns?: { bild?: string; ueberschrift?: string; text1?: string; text2?: string; tags?: string[] } }).ueberUns;
-  const { name, branche, ort } = client;
+  const { ueberUns, name, branche, ort } = client as unknown as {
+    ueberUns: { bild: string | null; ueberschrift: string; text1: string; text2: string; tags: readonly string[] };
+    name: string; branche: string; ort: string;
+  };
 
   const photos: string[] = [];
   if (ueberUns?.bild) photos.push(ueberUns.bild);
