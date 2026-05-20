@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "titel": "Neue Winterreifen eingetroffen",
+    "datum": "2025-10-15",
+    "vorschau": "Ab sofort haben wir wieder eine große Auswahl an Winterreifen für alle Fahrzeugtypen vorrätig. Früh buchen lohnt sich!",
+    "bild": null
+  },
+  {
+    "id": 2,
+    "titel": "Jetzt Klimaanlage warten lassen",
+    "datum": "2025-06-01",
+    "vorschau": "Bevor der Sommer kommt: Lassen Sie Ihre Klimaanlage prüfen und das Kältemittel auffüllen — schnell und günstig.",
+    "bild": null
+  },
+  {
+    "id": 3,
+    "titel": "HU-Aktion im Oktober",
+    "datum": "2025-09-20",
+    "vorschau": "Im Oktober bieten wir HU-Abnahmen zu Sonderkonditionen an. Sichern Sie sich jetzt Ihren Termin.",
+    "bild": null
+  },
+  {
+    "id": 4,
+    "titel": "Erweiterte Öffnungszeiten",
+    "datum": "2025-08-05",
+    "vorschau": "Ab September sind wir auch samstags von 08:00 bis 12:00 Uhr für Sie da — für alle dringenden Reparaturen.",
+    "bild": null
+  }
+]

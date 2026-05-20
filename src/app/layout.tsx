@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Roboto } from "next/font/google";
 import "./globals.css";
 import { CookieBanner } from "@/components/CookieBanner";
 import { AccessibilityWidget } from "@/components/AccessibilityWidget";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["400", "700", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-roboto",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "autoPRO Fahrzeugtechnik",
@@ -14,8 +21,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de">
-      <body className={`${geist.variable} antialiased`}>
+      <body className={`${roboto.variable} antialiased`}>
         {children}
+        <WhatsAppButton />
         <CookieBanner />
         <AccessibilityWidget />
       </body>

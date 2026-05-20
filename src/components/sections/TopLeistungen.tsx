@@ -1,8 +1,6 @@
-"use client";
-
+import Link from "next/link";
 import { client } from "@/data/client";
 import Image from "next/image";
-import { Wrench } from "lucide-react";
 
 // ── Inline SVG icons matching autopro style ───────────────────────────────────
 function IconWrench() {
@@ -118,17 +116,13 @@ export function TopLeistungen() {
 
         {/* CTA */}
         <div className="text-center mt-8">
-          <a
-            href="#kontakt"
-            className="inline-block px-6 py-3 font-bold text-sm uppercase tracking-wide transition-colors"
+          <Link
+            href="/kontakt"
+            className="inline-block px-6 py-3 font-bold text-sm uppercase tracking-wide transition-opacity hover:opacity-80"
             style={{ backgroundColor: "#ffd100", color: "#333333" }}
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById("kontakt")?.scrollIntoView({ behavior: "smooth" });
-            }}
           >
             Termin vereinbaren
-          </a>
+          </Link>
         </div>
       </div>
     </section>
