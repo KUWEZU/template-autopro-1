@@ -49,8 +49,17 @@ function IconGlas() {
 
 const ICONS = [IconWrench, IconTuev, IconKarosserie, IconGlas];
 
+// Default service cards shown when no Leistungen are configured in the DB
+const FALLBACK_LEISTUNGEN = [
+  { slug: "kfz-reparaturen",  title: "Kfz-Reparaturen",         bild: "", description: "Alle Fabrikate — schnell, sauber, zu fairen Preisen." },
+  { slug: "hu-au",            title: "HU- und AU-Abnahme",       bild: "", description: "Haupt- und Abgasuntersuchungen direkt vor Ort." },
+  { slug: "karosserie",       title: "Karosserieinstandsetzung", bild: "", description: "Von der kleinen Delle bis zur großen Unfallreparatur." },
+  { slug: "autoglas",         title: "Autoglasreparaturen",      bild: "", description: "Steinschlag und Scheibentausch — schnell erledigt." },
+] as const;
+
 export function TopLeistungen() {
   const { leistungen } = client;
+  const items = leistungen.length > 0 ? leistungen : FALLBACK_LEISTUNGEN;
 
   return (
     <section
@@ -69,7 +78,7 @@ export function TopLeistungen() {
 
         {/* 4-column grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0">
-          {leistungen.slice(0, 4).map((l, i) => {
+          {items.slice(0, 4).map((l, i) => {
             const Icon = ICONS[i] ?? IconWrench;
             return (
               <div
