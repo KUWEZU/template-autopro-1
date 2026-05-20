@@ -1,3 +1,5 @@
+"use client";
+
 import { client } from "@/data/client";
 import Image from "next/image";
 import { Wrench } from "lucide-react";

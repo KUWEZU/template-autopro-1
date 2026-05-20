@@ -33,7 +33,7 @@ export function Intro() {
 
           <p className="text-base leading-relaxed" style={{ color: "#4a4a49" }}>
             Wir erledigen sämtliche Kfz-Reparaturen und Servicearbeiten mit höchster Sorgfalt
-            {branche === "Kfz-Werkstatt" || branche === "Autowerkstatt"
+            {(branche as string) === "Kfz-Werkstatt" || (branche as string) === "Autowerkstatt"
               ? " und sind auf Karosserieinstandsetzung und Autoglasreparaturen spezialisiert."
               : "."}
           </p>
