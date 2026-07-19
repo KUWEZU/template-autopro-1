@@ -1,8 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Phone, Mail, MapPin, Clock, Send, CheckCircle } from "lucide-react";
 import { client } from "@/data/client";
+
+// ── Kontaktformular-Konfiguration (zentral, gleich für alle Seiten) ───────────
+// Endpoint leer = Formular deaktiviert → ehrlicher Fallback (Tel/E-Mail), NIE
+// mehr falsches „gesendet!". TURNSTILE_SITEKEY: Cloudflare Turnstile (cookiefrei).
+// HINWEIS: aktuell Turnstile-TEST-Sitekey (immer bestanden) — vor echtem
+// Kunden-Rollout durch den produktiven Sitekey ersetzen (Secret liegt im Handler).
+const CONTACT_ENDPOINT = "https://dashboard.kuwezu.de/api/contact";
+const TURNSTILE_SITEKEY = "1x00000000000000000000AA";
+
+declare global {
+  interface Window { turnstile?: { render: (el: HTMLElement, opts: Record<string, unknown>) => string; reset: (id?: string) => void } }
+}
 
 export function Kontakt() {
   const [form, setForm] = useState({
@@ -16,6 +28,35 @@ export function Kontakt() {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tsToken, setTsToken] = useState("");
+  const tsRef = useRef<HTMLDivElement>(null);
+  const tsRendered = useRef(false);
+
+  // Cloudflare Turnstile laden + rendern (cookiefrei → kein Consent-Banner nötig).
+  useEffect(() => {
+    if (!CONTACT_ENDPOINT || !TURNSTILE_SITEKEY) return;
+    const render = () => {
+      if (tsRendered.current || !tsRef.current || !window.turnstile) return;
+      tsRendered.current = true;
+      window.turnstile.render(tsRef.current, {
+        sitekey: TURNSTILE_SITEKEY,
+        callback: (t: string) => setTsToken(t),
+        "expired-callback": () => setTsToken(""),
+        "error-callback": () => setTsToken(""),
+      });
+    };
+    if (window.turnstile) { render(); return; }
+    const id = "cf-turnstile-script";
+    if (!document.getElementById(id)) {
+      const s = document.createElement("script");
+      s.id = id; s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js"; s.async = true; s.defer = true;
+      s.onload = render;
+      document.head.appendChild(s);
+    } else {
+      const iv = setInterval(() => { if (window.turnstile) { clearInterval(iv); render(); } }, 200);
+      return () => clearInterval(iv);
+    }
+  }, []);
 
   function setField<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
     setForm((p) => ({ ...p, [k]: v }));
@@ -23,6 +64,7 @@ export function Kontakt() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     if (!form.name.trim() || !form.email.trim() || !form.nachricht.trim()) {
       setError("Bitte füllen Sie alle Pflichtfelder aus.");
       return;
@@ -31,13 +73,43 @@ export function Kontakt() {
       setError("Bitte stimmen Sie der Datenschutzerklärung zu.");
       return;
     }
+    // Feature-Flag aus: KEIN falsches „gesendet" — ehrlicher Direktkontakt-Hinweis.
+    if (!CONTACT_ENDPOINT) {
+      setError(`Bitte kontaktieren Sie uns direkt: ${client.telefon}${client.email ? ` oder ${client.email}` : ""}.`);
+      return;
+    }
+    if (TURNSTILE_SITEKEY && !tsToken) {
+      setError("Bitte schließen Sie die Sicherheitsprüfung ab.");
+      return;
+    }
+    const honeypot = (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>('input[name="company"]')?.value ?? "";
+    // autopro-Feldnamen auf den Server-Contract mappen: telefon→phone, nachricht→message.
+    // Der „Rückruf erwünscht"-Wunsch wird an die Nachricht angehängt (kein eigenes Contract-Feld).
+    const message = form.rueckruf ? `${form.nachricht}\n\n[Rückruf erwünscht]` : form.nachricht;
     setSending(true);
-    setError(null);
     try {
-      await new Promise((r) => setTimeout(r, 800));
-      setSent(true);
+      const res = await fetch(CONTACT_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.telefon,
+          message,
+          company: honeypot,
+          turnstileToken: tsToken,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (res.ok && data.ok) {
+        setSent(true);
+      } else {
+        setError(data.error || `Senden fehlgeschlagen. Bitte kontaktieren Sie uns direkt: ${client.telefon}.`);
+        window.turnstile?.reset(); setTsToken("");
+      }
     } catch {
-      setError("Fehler beim Senden. Bitte versuchen Sie es erneut.");
+      setError(`Senden fehlgeschlagen. Bitte kontaktieren Sie uns direkt: ${client.telefon}${client.email ? ` oder ${client.email}` : ""}.`);
+      window.turnstile?.reset(); setTsToken("");
     } finally {
       setSending(false);
     }
@@ -293,6 +365,15 @@ export function Kontakt() {
                     <span style={{ color: "#c0392b" }}>*</span>
                   </span>
                 </label>
+
+                {/* Honeypot — für Menschen unsichtbar; ausgefüllt = Bot (Server verwirft). */}
+                <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}>
+                  <label htmlFor="company">Firma (nicht ausfüllen)</label>
+                  <input id="company" name="company" type="text" tabIndex={-1} autoComplete="off" />
+                </div>
+
+                {/* Cloudflare Turnstile — cookiefrei, kein Consent-Banner. */}
+                {TURNSTILE_SITEKEY && <div ref={tsRef} className="cf-turnstile" />}
 
                 <button
                   type="submit"
